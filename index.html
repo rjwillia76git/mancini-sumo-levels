@@ -190,7 +190,8 @@
   .plan-card { margin-top: 20px; }
   .plan-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .plan-col { padding: 14px 18px; min-width: 0; }
-  .plan-col + .plan-col { border-left: 1px solid var(--border); }
+  .plan-col.right { border-left: 1px solid var(--border); }
+  .plan-col.notes-cell { border-top: 1px solid var(--border); }
   .plan-col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
   .plan-col-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -200,16 +201,20 @@
   }
   .chip.support { color: var(--green); background: rgba(52,211,153,0.13); border: 1.5px solid rgba(52,211,153,0.4); }
   .chip.resistance { color: var(--red); background: rgba(248,113,113,0.13); border: 1.5px solid rgba(248,113,113,0.4); }
-  .notes { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--row-border); display: flex; flex-direction: column; gap: 8px; }
-  .note { display: flex; gap: 10px; font-size: 12px; line-height: 1.5; }
-  .note-lvl { font-family: 'DM Mono', 'SF Mono', monospace; font-weight: 700; white-space: nowrap; }
+  .notes-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+  .notes { display: grid; grid-template-columns: minmax(96px, max-content) 1fr; column-gap: 16px; row-gap: 10px; font-size: 12px; line-height: 1.5; }
+  .note-lvl { font-family: 'DM Mono', 'SF Mono', monospace; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .note-text { color: #8890b8; }
   .plan-empty { padding: 16px 18px; font-size: 13px; color: var(--text-dim); font-style: italic; }
   @media (max-width: 480px) {
     .val-col { min-width: 0; padding-right: 12px; }
     .val-num { font-size: 15px; }
     .plan-grid { grid-template-columns: 1fr; }
-    .plan-col + .plan-col { border-left: none; border-top: 1px solid var(--border); }
+    .plan-col.right { border-left: none; }
+    .plan-col.support-levels { order: 1; }
+    .plan-col.support-notes { order: 2; }
+    .plan-col.resistance-levels { order: 3; border-top: 1px solid var(--border); }
+    .plan-col.resistance-notes { order: 4; }
   }
 </style>
 </head>
@@ -380,23 +385,27 @@ function planCol(side, title, color, entries) {
   const notes = entries.filter(e => e.note);
   const notesHtml = notes.length
     ? '<div class="notes">' + notes.map(e =>
-        '<div class="note"><span class="note-lvl" style="color:' + color + '">' + esc(e.levels.join(" / ")) +
-        '</span><span class="note-text">' + esc(e.note) + '</span></div>').join("") + '</div>'
-    : '';
-  return '<div class="plan-col">' +
-    '<div class="plan-col-head"><span class="plan-col-title"><span class="dot" style="background:' + color + '"></span>' +
-      title + ' <span class="date">(' + levels.length + ')</span></span>' +
-      '<button class="copy-btn" data-copy="' + side + '"' + (levels.length ? '' : ' disabled') + '>Copy</button></div>' +
-    '<div class="chips">' + chips + '</div>' + notesHtml + '</div>';
+        '<span class="note-lvl" style="color:' + color + '">' + esc(e.levels.join(" / ")) +
+        '</span><span class="note-text">' + esc(e.note) + '</span>').join("") + '</div>'
+    : '<span class="plan-empty" style="padding:0">None</span>';
+  const pos = side === "resistance" ? " right" : "";
+  return {
+    levels: '<div class="plan-col ' + side + '-levels' + pos + '">' +
+      '<div class="plan-col-head"><span class="plan-col-title"><span class="dot" style="background:' + color + '"></span>' +
+        title + ' <span class="date">(' + levels.length + ')</span></span>' +
+        '<button class="copy-btn" data-copy="' + side + '"' + (levels.length ? '' : ' disabled') + '>Copy</button></div>' +
+      '<div class="chips">' + chips + '</div></div>',
+    notes: '<div class="plan-col notes-cell ' + side + '-notes' + pos + '"><div class="notes-title">' + title + ' Notes</div>' + notesHtml + '</div>',
+  };
 }
 
 function renderPlan(m) {
   const body = document.getElementById("plan-body");
   document.getElementById("plan-updated").textContent = m ? (fmtUpdated(m.updatedAt) || "") : "";
   if (!m) { body.innerHTML = '<div class="plan-empty">No levels posted yet</div>'; return; }
-  body.innerHTML = '<div class="plan-grid">' +
-    planCol("support", "Support", "#34d399", m.support || []) +
-    planCol("resistance", "Resistance", "#f87171", m.resistance || []) + '</div>';
+  const sup = planCol("support", "Support", "#34d399", m.support || []);
+  const res = planCol("resistance", "Resistance", "#f87171", m.resistance || []);
+  body.innerHTML = '<div class="plan-grid">' + sup.levels + res.levels + sup.notes + res.notes + '</div>';
 }
 
 document.getElementById("plan-body").addEventListener("click", (ev) => {
