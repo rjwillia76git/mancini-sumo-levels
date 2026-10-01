@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mancini SuMo Levels</title>
+<style>
+  :root {
+    --bg: #08091a;
+    --surface: #0e1128;
+    --border: rgba(99,102,241,0.12);
+    --border-strong: rgba(99,102,241,0.25);
+    --text: #e8eaff;
+    --text-dim: #5a6090;
+    --green: #34d399;
+    --green-mid: #4ade80;
+    --green-deep: #16a34a;
+    --red: #f87171;
+    --header-bg: rgba(255,255,255,0.025);
+    --header-border: rgba(255,255,255,0.08);
+    --row-border: rgba(90,96,144,0.3);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 760px;
+    padding-top: 24px;
+  }
+  h1 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: var(--text);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    height: 44px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: var(--header-bg);
+    border-bottom: 2px solid var(--header-border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .date {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', 'SF Mono', monospace;
+  }
+  button.copy-btn {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  button.copy-btn:hover { color: var(--text); }
+  button.copy-btn.copied {
+    background: rgba(52,211,153,0.13);
+    border-color: rgba(52,211,153,0.33);
+    color: var(--green);
+  }
+  button.copy-btn:disabled { cursor: default; opacity: 0.5; }
+  .card-body {
+    padding: 4px 18px 14px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--row-border);
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .row-label {
+    width: 90px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .label-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .val-col {
+    flex: 1;
+    min-width: 140px;
+    text-align: right;
+    padding-right: 24px;
+  }
+  .val-col.last { padding-right: 0; }
+  .val-prefix {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-right: 8px;
+  }
+  .val-num {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'DM Mono', 'SF Mono', monospace;
+  }
+  .basis-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+  .status {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 12px 0;
+  }
+  .status.error { color: var(--red); font-style: normal; }
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 16px;
+  }
+  @media (max-width: 480px) {
+    .val-col { min-width: 0; padding-right: 12px; }
+    .val-num { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mancini Levels</h1>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">SqueezeMetrics SuMo Levels</span>
+        <div class="header-right">
+          <span class="date" id="date-label"></span>
+          <button class="copy-btn" id="copy-spx" disabled>Copy SPX</button>
+          <button class="copy-btn" id="copy-es" disabled>Copy ES</button>
+        </div>
+      </div>
+      <div class="card-body" id="card-body">
+        <div class="status" id="status">Loading...</div>
+      </div>
+    </div>
+    <div class="footer-note">Refreshes automatically every 5 minutes</div>
+  </div>
+
+<script>
+const API_URL = "https://xync7f8j0f.execute-api.us-east-1.amazonaws.com/public/sumo-levels";
+const REFRESH_MS = 5 * 60 * 1000;
+
+const ROWS = [
+  { key: "trendPlus", label: "Trend+", color: "var(--red)" },
+  { key: "momentum",  label: "Momentum", color: "var(--red)" },
+  { key: "midpoint",  label: "Midpoint", color: "var(--text)" },
+  { key: "support",   label: "Support", color: "var(--green)" },
+  { key: "flush",     label: "Flush", color: "var(--green-mid)" },
+  { key: "trend",     label: "Trend", color: "var(--green-deep)" },
+];
+
+function deriveLevels(spx, esSpread) {
+  if (!spx || spx.support == null || spx.midpoint == null || spx.momentum == null) return null;
+  const sigma = (spx.midpoint - spx.support) / 0.75;
+  const flushSpx = spx.support - 0.75 * sigma;
+  const trendSpx = spx.support - 1.50 * sigma;
+  const trendPlusSpx = spx.momentum + 1.00 * sigma;
+  const withEs = (v) => ({ spx: v, es: esSpread != null ? v + esSpread : null });
+  return { sigma, flush: withEs(flushSpx), trend: withEs(trendSpx), trendPlus: withEs(trendPlusSpx) };
+}
+
+function fmt(v) { return v != null ? v.toFixed(2) : "—"; }
+
+let lastData = null;
+
+function render(data, errorMsg) {
+  const body = document.getElementById("card-body");
+  const dateLabel = document.getElementById("date-label");
+  const copySpxBtn = document.getElementById("copy-spx");
+  const copyEsBtn = document.getElementById("copy-es");
+
+  if (errorMsg) {
+    body.innerHTML = '<div class="status error">Failed to load SuMo levels: ' + errorMsg + '</div>';
+    return;
+  }
+  if (!data) {
+    body.innerHTML = '<div class="status">Loading...</div>';
+    return;
+  }
+
+  dateLabel.textContent = data.date || "";
+  const derived = deriveLevels(data.spx, data.esSpread);
+  const full = {
+    momentum: data.spx,
+    es: data.es,
+  };
+
+  const rowsHtml = ROWS.map(r => {
+    let spxVal, esVal;
+    if (r.key === "flush" || r.key === "trend" || r.key === "trendPlus") {
+      spxVal = derived ? derived[r.key].spx : null;
+      esVal = derived ? derived[r.key].es : null;
+    } else {
+      spxVal = data.spx ? data.spx[r.key] : null;
+      esVal = data.es ? data.es[r.key] : null;
+    }
+    return (
+      '<div class="row">' +
+        '<div class="row-label"><div class="dot" style="background:' + r.color + '"></div>' +
+          '<span class="label-text">' + r.label + '</span></div>' +
+        '<div class="val-col"><span class="val-prefix">SPX</span>' +
+          '<span class="val-num" style="color:' + r.color + '">' + fmt(spxVal) + '</span></div>' +
+        '<div class="val-col last"><span class="val-prefix">ES</span>' +
+          '<span class="val-num" style="color:' + r.color + '">' + fmt(esVal) + '</span></div>' +
+      '</div>'
+    );
+  }).join("");
+
+  const basisHtml = data.esSpread != null
+    ? '<div class="basis-note">ES = SPX + ' + data.esSpread.toFixed(2) + ' (prior-close ES &minus; SPX basis, frozen for the day)</div>'
+    : '<div class="basis-note">ES conversion unavailable — showing SPX only</div>';
+
+  body.innerHTML = rowsHtml + basisHtml;
+
+  lastData = { data, derived };
+  copySpxBtn.disabled = !data.spx;
+  copyEsBtn.disabled = !data.es;
+}
+
+function copyLevels(which) {
+  if (!lastData) return;
+  const { data, derived } = lastData;
+  const levels = data[which];
+  if (!levels) return;
+  const vals = [
+    derived ? derived.trend[which] : null,
+    derived ? derived.flush[which] : null,
+    levels.support,
+    levels.midpoint,
+    levels.momentum,
+    derived ? derived.trendPlus[which] : null,
+  ].map(v => v != null ? v.toFixed(2) : "");
+  navigator.clipboard.writeText(vals.join(", ")).then(() => {
+    const btn = document.getElementById(which === "spx" ? "copy-spx" : "copy-es");
+    const original = btn.textContent;
+    btn.textContent = "Copied ✓";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = original; btn.classList.remove("copied"); }, 2000);
+  }).catch(() => {});
+}
+
+document.getElementById("copy-spx").addEventListener("click", () => copyLevels("spx"));
+document.getElementById("copy-es").addEventListener("click", () => copyLevels("es"));
+
+async function fetchLevels() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    render(data, null);
+  } catch (e) {
+    render(null, e.message);
+  }
+}
+
+fetchLevels();
+setInterval(fetchLevels, REFRESH_MS);
+</script>
+</body>
+</html>
