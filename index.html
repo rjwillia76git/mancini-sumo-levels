@@ -190,12 +190,12 @@
 const API_URL = "https://xync7f8j0f.execute-api.us-east-1.amazonaws.com/public/sumo-levels";
 
 const ROWS = [
-  { key: "trendPlus", label: "MO + 1σ", color: "var(--red)" },
-  { key: "momentum",  label: "MO", color: "var(--red)" },
-  { key: "midpoint",  label: "MID", color: "var(--text)" },
-  { key: "support",   label: "SU", color: "var(--green)" },
-  { key: "flush",     label: "SU - 0.75σ", color: "var(--green-mid)" },
-  { key: "trend",     label: "SU - 1.5σ", color: "var(--green-deep)" },
+  { key: "trendPlus", label: "MO + 1σ", color: "#ef4444" },
+  { key: "momentum",  label: "MO", color: "#22c55e" },
+  { key: "midpoint",  label: "MID", color: "#f97316" },
+  { key: "support",   label: "SU", color: "#22c55e" },
+  { key: "flush",     label: "SU - 0.75σ", color: "#22c55e" },
+  { key: "trend",     label: "SU - 1.5σ", color: "#22c55e" },
 ];
 
 function deriveLevels(spx, esSpread) {
