@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mancini SuMo Levels</title>
+<title>SUMO Levels</title>
 <style>
   :root {
     --bg: #08091a;
@@ -125,7 +125,6 @@
     font-size: 11px;
     font-weight: 700;
     color: var(--text);
-    text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   .val-col {
@@ -171,7 +170,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Mancini Levels</h1>
+    <h1>SUMO Levels</h1>
     <div class="card">
       <div class="card-header">
         <span class="card-title">SqueezeMetrics SuMo Levels</span>
@@ -185,20 +184,18 @@
         <div class="status" id="status">Loading...</div>
       </div>
     </div>
-    <div class="footer-note">Refreshes automatically every 5 minutes</div>
   </div>
 
 <script>
 const API_URL = "https://xync7f8j0f.execute-api.us-east-1.amazonaws.com/public/sumo-levels";
-const REFRESH_MS = 5 * 60 * 1000;
 
 const ROWS = [
-  { key: "trendPlus", label: "Trend+", color: "var(--red)" },
-  { key: "momentum",  label: "Momentum", color: "var(--red)" },
-  { key: "midpoint",  label: "Midpoint", color: "var(--text)" },
-  { key: "support",   label: "Support", color: "var(--green)" },
-  { key: "flush",     label: "Flush", color: "var(--green-mid)" },
-  { key: "trend",     label: "Trend", color: "var(--green-deep)" },
+  { key: "trendPlus", label: "MO + 1σ", color: "var(--red)" },
+  { key: "momentum",  label: "MO", color: "var(--red)" },
+  { key: "midpoint",  label: "MID", color: "var(--text)" },
+  { key: "support",   label: "SU", color: "var(--green)" },
+  { key: "flush",     label: "SU - 0.75σ", color: "var(--green-mid)" },
+  { key: "trend",     label: "SU - 1.5σ", color: "var(--green-deep)" },
 ];
 
 function deriveLevels(spx, esSpread) {
@@ -306,7 +303,6 @@ async function fetchLevels() {
 }
 
 fetchLevels();
-setInterval(fetchLevels, REFRESH_MS);
 </script>
 </body>
 </html>
